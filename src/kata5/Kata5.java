@@ -6,18 +6,42 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
+import static kata5.MailListReader.read;
+import java.sql.PreparedStatement;
 
 public class Kata5 {
-
+    
+    public static final String ruta = "C:\\Users\\Sebi\\Documents\\NetBeansProjects\\Kata5\\email.txt";
+    List<String> emails = read(ruta);
 
     public static void main(String[] args) {
-        createNewTable();
-
+        Kata5 bd = new Kata5();
+        bd.connect();
+        bd.createNewTable();
+        MailListReader mailListReader = new MailListReader();
+        List <String> items = mailListReader.read("email.txt");
+        for (String line : items) {
+            bd.insert(line);
+        }
     }
+    
+    public void insert(String email) {
+        String sql = "INSERT INTO EMAIL(Mail) VALUES(?)";
+        try (Connection conn = this.connect();
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, email);
+            pstmt.executeUpdate();
+        }
+        catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     
     private Connection connect() {
         // SQLite connection string
-        String url = "jdbc:sqlite:KATA5.db";
+        String url = "jdbc:sqlite:mail.db";
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(url);
